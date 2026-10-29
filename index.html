@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="An immersive 3D journey through the Solar System — shader-driven planets, accurate orbital data, and cinematic post-processing."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+    <title>Helios — Solar System</title>
+  </head>
+  <body>
+    <!-- Intro — fullscreen over live cosmos (no oval/circle art) -->
+    <div class="overlay" role="dialog" aria-label="Welcome">
+      <div class="overlay__content">
+        <p class="overlay__brand">Helios</p>
+        <h1 class="overlay__title">The Solar System</h1>
+        <p class="overlay__lead">
+          A cinematic 3D atlas of our cosmic neighborhood — orbits, atmospheres, and light sculpted
+          in real time.
+        </p>
+        <button type="button" class="explore-btn">Begin journey</button>
+      </div>
+    </div>
+
+    <canvas class="webgl" aria-label="Interactive 3D solar system"></canvas>
+
+    <!-- HUD -->
+    <aside id="hud" class="hud" aria-label="Navigation">
+      <div class="hud__top">
+        <span class="hud__logo">Helios</span>
+        <div class="hud__actions">
+          <button type="button" data-action="orbits" aria-pressed="true" title="Toggle orbits">
+            Orbits
+          </button>
+          <button type="button" data-action="reset" title="Show all planets">Overview</button>
+        </div>
+      </div>
+      <nav class="hud__planets" aria-label="Planets"></nav>
+      <label class="hud__speed">
+        <span>Time <em data-speed-label>1.0×</em></span>
+        <input id="time-scale" type="range" min="0.1" max="8" step="0.1" value="1" />
+      </label>
+    </aside>
+
+    <p id="hint" class="hint">Click a planet · HUD to fly there · Drag to orbit</p>
+
+    <!-- Planet detail -->
+    <div id="info" class="info" aria-hidden="true">
+      <button type="button" id="close" class="info__close" aria-label="Close">Close</button>
+      <div class="info__inner">
+        <header class="info__header">
+          <h1 id="planet-name"></h1>
+          <p id="planet-short-description"></p>
+        </header>
+        <div class="info__grid">
+          <dl class="info__stats">
+            <div class="info__stat">
+              <dt>Distance from Sun</dt>
+              <dd id="distance"></dd>
+            </div>
+            <div class="info__stat">
+              <dt>Radius</dt>
+              <dd id="radius"></dd>
+            </div>
+            <div class="info__stat">
+              <dt>Mass</dt>
+              <dd id="mass"></dd>
+            </div>
+            <div class="info__stat">
+              <dt>Gravity</dt>
+              <dd id="gravity"></dd>
+            </div>
+            <div class="info__stat">
+              <dt>Length of day</dt>
+              <dd id="lengthOfDay"></dd>
+            </div>
+            <div class="info__stat">
+              <dt>Length of year</dt>
+              <dd id="lengthOfYear"></dd>
+            </div>
+            <div class="info__stat">
+              <dt>Temperature</dt>
+              <dd id="temperature"></dd>
+            </div>
+            <div class="info__stat">
+              <dt>Known moons</dt>
+              <dd id="moons"></dd>
+            </div>
+          </dl>
+          <figure class="info__figure">
+            <img id="planet-image" src="" alt="" />
+          </figure>
+        </div>
+        <figure class="info__texture">
+          <figcaption>Surface map</figcaption>
+          <img id="planet-texture" src="" alt="" />
+        </figure>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

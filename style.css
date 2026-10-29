@@ -1,0 +1,460 @@
+:root {
+  --void: #03050c;
+  --ink: #f4efe6;
+  --muted: rgba(244, 239, 230, 0.62);
+  --line: rgba(244, 239, 230, 0.14);
+  --solar: #f0a84b;
+  --solar-deep: #c45c12;
+  --glass: rgba(8, 10, 18, 0.72);
+  --accent: var(--solar);
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-ui: 'Syne', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+canvas.webgl {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+  z-index: 1;
+}
+
+/* ─── Overlay / Intro — fullscreen over live 3D sky ───────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: clamp(1.75rem, 6vw, 5rem);
+  background: linear-gradient(
+    180deg,
+    rgba(2, 4, 10, 0.15) 0%,
+    rgba(2, 4, 10, 0.35) 45%,
+    rgba(2, 4, 10, 0.78) 100%
+  );
+  transition: opacity 0.4s ease;
+}
+
+.overlay.is-hidden {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.overlay__content {
+  max-width: 36rem;
+}
+
+.overlay__brand {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--solar);
+  margin-bottom: 1.25rem;
+}
+
+.overlay__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(3.2rem, 8vw, 6.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  max-width: 10ch;
+  color: var(--ink);
+}
+
+.overlay__lead {
+  margin-top: 1.5rem;
+  max-width: 34ch;
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.explore-btn {
+  margin-top: 2.25rem;
+  appearance: none;
+  border: 1px solid rgba(240, 168, 75, 0.55);
+  background: linear-gradient(180deg, rgba(240, 168, 75, 0.2), rgba(196, 92, 18, 0.12));
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1rem 1.75rem;
+  cursor: pointer;
+  transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+
+.explore-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, rgba(240, 168, 75, 0.35), rgba(196, 92, 18, 0.2));
+  border-color: var(--solar);
+}
+
+/* ─── HUD ─────────────────────────────────────────────────── */
+.hud {
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  background: linear-gradient(180deg, rgba(3, 5, 12, 0.75), transparent);
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.hud.is-visible {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.hud__top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hud__logo {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-style: italic;
+  color: var(--solar);
+}
+
+.hud__actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.hud__actions button,
+.hud__planet {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.hud__actions button:hover,
+.hud__planet:hover {
+  border-color: rgba(240, 168, 75, 0.5);
+}
+
+.hud__actions button[aria-pressed='true'] {
+  border-color: var(--solar);
+  color: var(--solar);
+}
+
+.hud__planets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.hud__planet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.hud__planet.is-active {
+  border-color: var(--solar);
+  background: rgba(240, 168, 75, 0.12);
+}
+
+.hud__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c, var(--solar));
+  box-shadow: 0 0 8px var(--c, var(--solar));
+}
+
+.hud__speed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 140px;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hud__speed em {
+  font-style: normal;
+  color: var(--solar);
+  margin-left: 0.35rem;
+}
+
+.hud__speed input[type='range'] {
+  width: 100%;
+  accent-color: var(--solar);
+}
+
+.hint {
+  position: fixed;
+  z-index: 15;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease 0.4s, transform 0.6s ease 0.4s;
+}
+
+.hint.is-visible {
+  opacity: 1;
+  transform: translateX(-50%);
+}
+
+/* ─── Info panel (side sheet — planet stays visible) ─────── */
+.info {
+  position: fixed;
+  top: 4.5rem;
+  right: 1rem;
+  bottom: 1rem;
+  width: min(380px, calc(100vw - 1.5rem));
+  z-index: 30;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse 80% 40% at 100% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 55%),
+    rgba(6, 8, 16, 0.82);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(18px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  box-shadow: -12px 0 48px rgba(0, 0, 0, 0.45);
+}
+
+.info.is-open {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.info__close {
+  position: sticky;
+  top: 0.75rem;
+  float: right;
+  margin: 0.75rem 0.75rem 0 0;
+  z-index: 2;
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.info__close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.info__inner {
+  max-width: none;
+  margin: 0;
+  padding: 1.25rem 1.25rem 2rem;
+  clear: both;
+}
+
+.info__header h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5vw, 3rem);
+  line-height: 1;
+  background: linear-gradient(90deg, var(--ink), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.info__header p {
+  margin-top: 0.85rem;
+  max-width: none;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.info__grid {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.info__stats {
+  display: grid;
+  gap: 0.75rem;
+  order: 2;
+}
+
+.info__stat {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.info__stat dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.info__stat dd {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-align: right;
+}
+
+.info__figure,
+.info__texture {
+  margin: 0;
+}
+
+.info__figure {
+  order: 1;
+}
+
+.info__figure img,
+.info__texture img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.info__figure img {
+  max-height: 180px;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.45));
+}
+
+.info__texture {
+  margin-top: 0.5rem;
+  order: 3;
+}
+
+.info__texture figcaption {
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.info__texture img {
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  transition: transform 0.5s ease;
+}
+
+.info__texture:hover img {
+  transform: scale(1.02);
+}
+
+/* ─── Responsive ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .overlay {
+    align-items: flex-end;
+    padding-bottom: 2rem;
+  }
+
+  .overlay__title {
+    max-width: none;
+  }
+
+  .info {
+    top: auto;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: auto;
+    max-height: 45vh;
+  }
+
+  .hud__planets {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.25rem;
+  }
+
+  .hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
